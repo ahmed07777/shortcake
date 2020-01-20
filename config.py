@@ -6,7 +6,9 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     ''' Provides defaults for all configuration options. As such, also acts as
     an exhaustive list of all options. '''
-    pass
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'app.db')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 class TestingConfig(Config):

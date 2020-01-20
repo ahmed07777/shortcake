@@ -1,25 +1,28 @@
 from flask import Flask
 # from flask_bootstrap import Bootstrap
-# from flask_migrate import Migrate
-from app import routes, models
-# from app.db import db
+from flask_migrate import Migrate
+from app.db import db
+from app.api import bp as api_bp
+from app.webapp import bp as webapp_bp
 
 
 # bootstrap = Bootstrap()
-# migrate = Migrate()
+migrate = Migrate()
 
 
 def create_app(config):
+    """Create the application."""
     # create application with specified config
     app = Flask(__name__)
     app.config.from_object(config)
 
     # register extensions
     # bootstrap.init_app(app)
-    # db.init_app(app)
-    # migrate.init_app(app)
+    db.init_app(app)
+    migrate.init_app(app, db)
 
-    # register routes
-    routes.register(app)
+    # register blueprints
+    app.register_blueprint(api_bp, url_prefix='/api/v1')
+    app.register_blueprint(webapp_bp)
 
     return app
