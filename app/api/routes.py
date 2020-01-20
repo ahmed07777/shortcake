@@ -1,6 +1,6 @@
 from flask import request
-import core
 import config
+from app import core
 
 
 def register(bp):

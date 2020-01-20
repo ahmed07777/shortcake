@@ -1,7 +1,6 @@
 import pytest
 from config import Config
-from app import create_app, db
-import app.core as core
+from app import create_app, db, core
 
 
 class TestConfig(Config):
@@ -94,3 +93,45 @@ def test__key_from_hex__fillvalue():
     k = core._key_from_hex('ffffffffffffffffffffffffffffffffffffffff')
     # TODO what should this output?
     assert True
+
+
+def test__try_insert__common(db):
+    assert core._try_insert('7OuG89A', 'http://www.example.com/')
+
+def test__try_insert__preexisting_key(db):
+    db.insert('7OuG89A', 'http://www.example.com/')
+    assert core._try_insert('7OuG89A', 'http://www.example.com/')
+
+def test__try_insert__key_taken(db):
+    db.insert('7OuG89A', 'http://www.foobar.com/')
+    assert not core._try_insert('7OuG89A', 'http://www.example.com/')
+
+
+def test_shorten_url__common():
+    k = core.shorten_url('http://www.example.com')
+    assert core._is_valid_key(k)
+    # should get the same thing if we do it again
+    assert k == core.shorten_url('http://www.example.com')
+
+def test_shorten_url__invalid_url():
+    with pytest.raises(core.InvalidURLError):
+        core.shorten_url('lssldkakdk')
+
+def test_shorten_url__out_of_space():
+    # TODO
+    # core.shorten_url('http://www.example.com/')
+    pass
+
+
+def test_lengthen_url__common():
+    db.insert('7OuG89A', 'http://www.example.com/')
+    assert 'http://www.example.com/' == core.lengthen_url('7OuG89A')
+    # we should get the same thing if we do it again
+    assert 'http://www.example.com/' == core.lengthen_url('7OuG89A')
+
+def test_lengthen_url__nonexistent_key():
+    assert core.lengthen_url('78dkSf3') == None
+
+def test_lengthen_url__invalid_key():
+    with pytest.raises(core.InvalidShortKeyError):
+        core.lengthen_url('aah!!!')
