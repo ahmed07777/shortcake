@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$(readlink -f "$0" | xargs dirname)
+PROJECT_ROOT_DIR="${SCRIPT_DIR}"/..
+
+cd "$PROJECT_ROOT_DIR"
+pipenv run sphinx-apidoc -f -o docs/ app
+cd "${PROJECT_ROOT_DIR}/docs"
+pipenv run make html

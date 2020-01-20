@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$(readlink -f "$0" | xargs dirname)
+PROJECT_ROOT_DIR="${SCRIPT_DIR}"/..
+
+cd "$PROJECT_ROOT_DIR"
+FLASK_APP=main FLASK_ENV=development pipenv run flask run
