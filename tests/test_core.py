@@ -8,13 +8,13 @@ class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
 
 
-# @pytest.fixture
-# def app():
-#     app = create_app(TestConfig)
-#     app_context = app.app_context()
-#     app_context.push()
-#     db.create_all()
-#     yield app
+@pytest.fixture
+def app():
+    app = create_app(TestConfig)
+    app_context = app.app_context()
+    app_context.push()
+    db.create_all()
+    yield app
 
 
 def test__is_valid_url():
@@ -95,19 +95,21 @@ def test__key_from_hex__fillvalue():
     assert True
 
 
-def test__try_insert__common(db):
+def test__try_insert__common(app):
     assert core._try_insert('7OuG89A', 'http://www.example.com/')
 
-def test__try_insert__preexisting_key(db):
-    db.insert('7OuG89A', 'http://www.example.com/')
+def test__try_insert__preexisting_key(app):
+    db.session.add(ShortURL(key='7OuG89A' , url='http://www.example.com/'))
+    db.session.commit()
     assert core._try_insert('7OuG89A', 'http://www.example.com/')
 
-def test__try_insert__key_taken(db):
-    db.insert('7OuG89A', 'http://www.foobar.com/')
+def test__try_insert__key_taken(app):
+    db.session.add(ShortURL(key='7OuG89A' , url='http://www.foobar.com/'))
+    db.session.commit()
     assert not core._try_insert('7OuG89A', 'http://www.example.com/')
 
 
-def test_shorten_url__common():
+def test_shorten_url__common(app):
     k = core.shorten_url('http://www.example.com')
     assert core._is_valid_key(k)
     # should get the same thing if we do it again
@@ -123,13 +125,14 @@ def test_shorten_url__out_of_space():
     pass
 
 
-def test_lengthen_url__common():
-    db.insert('7OuG89A', 'http://www.example.com/')
+def test_lengthen_url__common(app):
+    db.session.add(ShortURL(key='7OuG89A' , url='http://www.example.com/'))
+    db.session.commit()
     assert 'http://www.example.com/' == core.lengthen_url('7OuG89A')
     # we should get the same thing if we do it again
     assert 'http://www.example.com/' == core.lengthen_url('7OuG89A')
 
-def test_lengthen_url__nonexistent_key():
+def test_lengthen_url__nonexistent_key(app):
     assert core.lengthen_url('78dkSf3') == None
 
 def test_lengthen_url__invalid_key():
