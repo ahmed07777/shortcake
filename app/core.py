@@ -4,9 +4,12 @@ Includes functions for shortening and lengthening URLs, plus associated
 helper functions.
 '''
 
+import re
 import string
 import hashlib
 import itertools as it
+
+from werkzeug.urls import url_parse, url_fix
 
 from app.models import ShortURL
 from app.db import db
@@ -64,8 +67,8 @@ def shorten_url(url: str) -> str:
     # the current parameters there are 7**62 possible shortkeys, so it is
     # unlikely that step 3 of the algorithms will ever be reached.
 
-    if not _is_valid_url(url):
-        raise InvalidURLError
+    # InvalidURLError is propogated to caller
+    url = _validate_url(url)
     hashstr = hashlib.sha1(url.encode()).hexdigest()
     long_keystr = _key_from_hex(hashstr)
     for i in range(len(long_keystr) - SHORTKEY_LENGTH + 1):
@@ -104,7 +107,7 @@ def lengthen_url(key: str) -> str:
     '''
     if not _is_valid_key(key):
         raise InvalidShortKeyError
-    existing_entry = ShortURL.query.filter_by(key=key).first()
+    existing_entry = ShortURL.query.get(key)
     if existing_entry:
         return existing_entry.url
     # key isn't in database
@@ -215,13 +218,38 @@ def _next_key(key: str) -> str:
     return ret
 
 
-def _is_valid_url(url: str) -> bool:
-    '''Return a boolean indicating whether the argument is a valid URL.'''
-    # TODO
-    return True
+def _validate_url(url: str) -> str:
+    '''Validate a URL.
+
+    Given a string, return a sanitized URL, or raise InvalidURLError if
+    the string is not a valid URL.
+
+    Args:
+        url (str): The string to validate as a URL
+
+    Returns:
+        str: The sanitized, validated URL
+
+    Raises:
+        InvalidURLError: The argument is not a valid URL
+    '''
+    if not url or not isinstance(url, str): raise InvalidURLError
+    # KISS. Can be expanded later if desired.
+    valid_schemes = ['http', 'https']
+    valid_netloc_pattern = re.compile(r'\w+\.\w+')
+
+    url_tuple = url_parse(url, scheme='http')
+    scheme, netloc, path = url_tuple.scheme, url_tuple.netloc, url_tuple.path
+    if scheme not in valid_schemes: raise InvalidURLError
+    if not re.match(valid_netloc_pattern, netloc) and \
+       (netloc or not re.match(valid_netloc_pattern, path)):
+        raise InvalidURLError
+    return url_fix(url)
 
 
+# TODO: I think the interface of this function should be changed to match
+# that of _validate_url
 def _is_valid_key(key: str) -> bool:
     '''Return a boolean indicating whether the argument is a valid short URL key.'''
-    if not isinstance(key, str) or not key: return False
+    if not key or not isinstance(key, str): return False
     return all(c in SHORTKEY_CHARSET for c in key) and 7 <= len(key) <= 10
