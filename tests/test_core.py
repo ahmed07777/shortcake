@@ -1,6 +1,7 @@
 import pytest
 from config import Config
 from app import create_app, db, core
+from app.models import ShortURL
 
 
 class TestConfig(Config):
@@ -54,7 +55,7 @@ def test__is_valid_key():
     # empty string
     assert not core._is_valid_key('')
     # UTF-8 nonsense
-    assert not core._is_valid_url('橦獬此橦獬此晪⤧⌦㜵㐳㬴')
+    assert not core._is_valid_key('橦獬此橦獬此晪⤧⌦㜵㐳㬴')
     # invalid char
     assert not core._is_valid_key('t!IEQm4y')
     # invalid char
@@ -82,7 +83,7 @@ def test__next_key__wraparound():
 
 def test__key_from_hex__common():
     k = core._key_from_hex('f0c740728f139362bbbe572391fa1bee03b6271e')
-    assert core._is_valid_key(k)
+    assert core._is_valid_key(k[:10])
     # we should get the same key if we do it again
     assert k == core._key_from_hex('f0c740728f139362bbbe572391fa1bee03b6271e')
 

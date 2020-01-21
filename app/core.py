@@ -4,6 +4,18 @@ Includes functions for shortening and lengthening URLs, plus associated
 helper functions.
 '''
 
+import string
+import hashlib
+import itertools as it
+
+from app.models import ShortURL
+from app.db import db
+
+
+SHORTKEY_LENGTH = 7  # can be increased up to 10 if need be
+SHORTKEY_CHARSET = string.digits + string.ascii_uppercase + string.ascii_lowercase
+N_SHORTKEY_CHARS = len(SHORTKEY_CHARSET)
+
 
 class InvalidURLError(Exception):
     '''Raised in certain situations when a string is not a valid URL.'''
@@ -38,7 +50,40 @@ def shorten_url(url: str) -> str:
         InvalidURLError: The input argument is not a valid URL
         OutOfShortKeysError: There are no more available short URL keys
     '''
-    pass
+
+    # The algorithm for converting a URL into a shortkey is as follows:
+    #    1. Hash the URL and convert the hash into a string of characters from
+    #       SHORTKEY_CHARSET
+    #    2. Try the beginning of this string as a shortkey. If the key is taken,
+    #       slide the shortkey "window" over by 1 and try again. Repeat this
+    #       until the end of the string is reached.
+    #    3. Take the current candidate key and increment it by 1 until an
+    #       available shortkey is found
+    #
+    # The performance of this algorithm in the worst case is terrible, but per
+    # the current parameters there are 7**62 possible shortkeys, so it is
+    # unlikely that step 3 of the algorithms will ever be reached.
+
+    if not _is_valid_url(url):
+        raise InvalidURLError
+    hashstr = hashlib.sha1(url.encode()).hexdigest()
+    long_keystr = _key_from_hex(hashstr)
+    for i in range(len(long_keystr) - SHORTKEY_LENGTH + 1):
+        candidate_key = long_keystr[i:i+SHORTKEY_LENGTH]
+        if _try_insert(candidate_key, url):
+            return candidate_key
+    # none of the key windows were available, so increment the current candidate
+    # key until we find an available one
+    initial_key = candidate_key
+    cur = _next_key(initial_key)
+    while cur != initial_key:
+        if _try_insert(cur, url):
+            return cur
+        cur = _next_key(cur)
+        if not cur:  # wrap around
+            cur = '0' * SHORTKEY_LENGTH
+    # there are no more available shortkeys
+    raise OutOfShortKeysError
 
 
 def lengthen_url(key: str) -> str:
@@ -57,7 +102,13 @@ def lengthen_url(key: str) -> str:
     Raises:
         InvalidShortKeyError: The argument is not a valid short key
     '''
-    pass
+    if not _is_valid_key(key):
+        raise InvalidShortKeyError
+    existing_entry = ShortURL.query.filter_by(key=key).first()
+    if existing_entry:
+        return existing_entry.url
+    # key isn't in database
+    return None
 
 
 def _try_insert(key: str, url: str) -> bool:
@@ -78,7 +129,12 @@ def _try_insert(key: str, url: str) -> bool:
         bool: Whether the (key,url) pair provided as arguments exists in
               the database
     '''
-    pass
+    existing_entry = ShortURL.query.filter_by(key=key).first()
+    if existing_entry:
+        return existing_entry.url == url
+    db.session.add(ShortURL(key=key, url=url))
+    db.session.commit()
+    return True
 
 
 def _key_from_hex(hexs: str) -> str:
@@ -97,13 +153,41 @@ def _key_from_hex(hexs: str) -> str:
     Returns:
         str: a short URL key
     '''
-    pass
+
+    # from https://docs.python.org/3/library/itertools.html#itertools-recipes
+    def grouper(iterable, n, fillvalue=None):
+        "Collect data into fixed-length chunks or blocks"
+        # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
+        args = [iter(iterable)] * n
+        return it.zip_longest(*args, fillvalue=fillvalue)
+
+    hash_bytes = bytes.fromhex(hexs)
+    # TODO is there a more efficient way to do this with bitmask operations?
+    hash_binstr = ''.join(bin(b)[2:] for b in hash_bytes)
+    keystr = ''
+    shortkey_fillchar = None
+    # NOTE 6 is hardcoded here because it is currently the smallest n for which
+    # 2**n >= N_SHORTKEY_CHARS. If the shortkey charset were to change, this
+    # number might need to be updated.
+    for group in grouper(hash_binstr, 6, fillvalue='0'):
+        sextet = ''.join(group)
+        i = int(sextet, 2)
+        # TODO are there *deterministic* ways of handling this edge case that
+        # give more even distributions of shortkeys?
+        if i >= N_SHORTKEY_CHARS:
+            # compute shortkey_fillchar if we haven't already
+            if not shortkey_fillchar:
+                shortkey_fillchar = int(hash_binstr, 2) % N_SHORTKEY_CHARS
+            i = shortkey_fillchar
+        char = SHORTKEY_CHARSET[i]
+        keystr += char
+    return keystr
 
 
 def _next_key(key: str) -> str:
     '''Return the next greatest key.
 
-    Given a short URL key, reeturn the next greatest key, assuming an
+    Given a short URL key, return the next greatest key, assuming an
     alphanumeric sort order. If there is no next greatest key, (i.e. the
     input key was the highest in the sort order, namely "zzzzzzz"),
     return None. Note that this function *does not* santitize the input
@@ -116,14 +200,28 @@ def _next_key(key: str) -> str:
     Returns:
         str: The next greatest short URL key
     '''
-    pass
+    ret = key
+    for i in reversed(range(len(key))):
+        k = key[i]
+        if k == 'z':
+            ret = ret[:i] + '0' + ret[i+1:]
+        else:
+            idx = SHORTKEY_CHARSET.find(k)
+            ret = ret[:i] + SHORTKEY_CHARSET[idx+1] + ret[i+1:]
+            break
+    else:
+        # we got the string 'zzzzzzz'
+        return None
+    return ret
 
 
 def _is_valid_url(url: str) -> bool:
     '''Return a boolean indicating whether the argument is a valid URL.'''
-    pass
+    # TODO
+    return True
 
 
 def _is_valid_key(key: str) -> bool:
     '''Return a boolean indicating whether the argument is a valid short URL key.'''
-    pass
+    if not isinstance(key, str) or not key: return False
+    return all(c in SHORTKEY_CHARSET for c in key) and 7 <= len(key) <= 10
