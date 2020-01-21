@@ -8,7 +8,7 @@ class Config:
     an exhaustive list of all options. '''
 
     # general options
-    DOMAIN_NAME = os.environ.get('DOMAIN_NAME') or 'localhost'
+    DOMAIN_NAME = os.environ.get('DOMAIN_NAME') or 'localhost:5000'
 
     # database options
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
