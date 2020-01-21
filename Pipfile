@@ -12,6 +12,7 @@ sphinx = "*"
 flask-sqlalchemy = "*"
 flask-migrate = "*"
 pytest = "*"
+psycopg2 = "*"
 
 [requires]
 python_version = "3.8"
