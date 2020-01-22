@@ -1,0 +1,14 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="../static/styles.css">
+{% endblock %}
+
+{% block title %}Shortcake{% endblock %}
+
+{% block content %}
+<div class="container" >
+    {% block page_content %}{% endblock %}
+</div>
+{% endblock %}

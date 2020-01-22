@@ -13,6 +13,7 @@ flask-sqlalchemy = "*"
 flask-migrate = "*"
 pytest = "*"
 psycopg2 = "*"
+flask-bootstrap = "*"
 
 [requires]
 python_version = "3.8"

@@ -8,6 +8,7 @@ class Config:
     an exhaustive list of all options. '''
 
     # general options
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'secret'
     DOMAIN_NAME = os.environ.get('DOMAIN_NAME') or 'localhost:5000'
 
     # database options

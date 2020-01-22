@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% import 'bootstrap/utils.html' as utils %}
+
+{% block page_content %}
+<h1>Shortcake -- Deliciously short URLs</h1>
+<div class="row" >
+    <div class="col-sm-8" >
+        <div class="input-group">
+            <form action="{{ url_for('webapp.index') }}" method="post" >
+                <input type="text" class="form-control" name="url" placeholder="Your URL here" >
+                <span class="input-group-btn" >
+                    <button class="btn btn-default" type="button">
+                        Shorten
+                        <input type="submit" >
+                    </button>
+                </span>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="row" >
+    <div class="col-sm-6" >
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+             {% endif %}
+         {% endwith %}
+    </div>
+</div>
+{% endblock %}

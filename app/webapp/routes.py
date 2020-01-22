@@ -1,4 +1,32 @@
+from flask import request, render_template, redirect, flash, current_app
+from app import core
+
+
 def register(bp):
-    @bp.route('/')
+    @bp.route('/', methods=['GET', 'POST'])
     def index():
-        return "Hello, world!"
+        if request.method == 'POST':
+            # the form to shorten a URL was submitted
+            try:
+                short_key = core.shorten_url(request.form['url'])
+                short_url = 'http://{}/{}'.format(
+                    current_app.config['DOMAIN_NAME'],
+                    short_key)
+                flash(short_url)
+            except core.InvalidURLError:
+                flash('Invalid URL. Please try again.')
+            except core.OutOfShortKeysError:
+                flash('Unable to shorten URL, sorry!')
+        return render_template('index.html')
+
+
+    @bp.route('/<string:key>', methods=['GET'])
+    def short_url_redirect(key):
+        try:
+            expanded_url = core.lengthen_url(key)
+            if not expanded_url:
+                return 'not found', 404
+            return redirect(expanded_url)
+        except core.InvalidShortKeyError:
+            # TODO
+            return 'not found', 404

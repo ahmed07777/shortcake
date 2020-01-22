@@ -1,12 +1,12 @@
 from flask import Flask
-# from flask_bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap
 from flask_migrate import Migrate
 from app.db import db
 from app.api import bp as api_bp
 from app.webapp import bp as webapp_bp
 
 
-# bootstrap = Bootstrap()
+bootstrap = Bootstrap()
 migrate = Migrate()
 
 
@@ -17,7 +17,7 @@ def create_app(config):
     app.config.from_object(config)
 
     # register extensions
-    # bootstrap.init_app(app)
+    bootstrap.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
 
