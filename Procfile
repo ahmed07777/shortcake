@@ -1,1 +1,1 @@
-web: flask db upgrade && gunicorn main:app
+web: FLASK_APP=main.py flask db upgrade && gunicorn main:app
