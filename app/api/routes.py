@@ -13,7 +13,7 @@ def register(bp):
             short_url = 'http://{}/{}'.format(
                 current_app.config['DOMAIN_NAME'],
                 key)
-            return jsonify({'short_url': short_url})
+            return jsonify({'short_url': short_url}), 201
         except core.InvalidURLError as e:
             # TODO more descriptive and individualized error messages
             abort(400)
