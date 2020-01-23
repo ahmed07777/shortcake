@@ -1,7 +1,7 @@
-# Shortcake
+# :cake: Shortcake :cake:
 
 **Shortcake** is a URL shortening service. It provides a RESTful API that allows
-URLS to be both shortened and lengthened, as well as a simple web interface to
+URLs to be both shortened and lengthened, as well as a simple web interface to
 the same functionality. Shortcake can easily be deployed to the cloud, allowing
 anyone to host their own URL shortener.
 
@@ -16,9 +16,7 @@ Content-Length: 51
 Server: Werkzeug/0.16.0 Python/3.8.1
 Date: Wed, 22 Jan 2020 19:41:33 GMT
 
-{
-  "short_url": "http://localhost:5000/qOtlLcV"
-}
+{"short_url": "http://localhost:5000/qOtlLcV"}
 
 $ curl -i http://localhost:5000/api/v1/lengthen/qOtlLcV
 HTTP/1.0 200 OK
@@ -27,9 +25,7 @@ Content-Length: 38
 Server: Werkzeug/0.16.0 Python/3.8.1
 Date: Wed, 22 Jan 2020 19:42:23 GMT
 
-{
-  "url": "http://www.google.com/"
-}
+{"url": "http://www.google.com/"}
 ```
 
 It's that simple!
@@ -49,6 +45,8 @@ $ heroku addons:create heroku-postgresql:hobby-dev
 $ heroku config:set DOMAIN_NAME="<domain-name>"
 # generate random data to use as a secret key
 $ heroku config:set SECRET_KEY="$(python -c 'import os; print(os.urandom(16))')"
+$ git push heroku master
+$ heroku open
 ```
 
 You can then invoke the API against your Heroku instance, or browse to the root
