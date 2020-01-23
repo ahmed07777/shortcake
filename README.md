@@ -63,3 +63,6 @@ If you wish to hack on shortcake yourself, you will find the contents of the
 built locally using `scripts/build-docs`, the development server can be run
 using `scripts/run-dev`, and the interactive shell instance of the application
 can be invoked using `scripts/run-shell`.
+
+Note that both building the docs and running the tests require you to install
+the development dependencies via `pipenv install -d`.
