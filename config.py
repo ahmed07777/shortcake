@@ -33,7 +33,8 @@ class Config:
 
 class TestingConfig(Config):
     '''A specialized configuration for automated unit tests.'''
-    pass
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
 
 
 class DevelopmentConfig(Config):
@@ -43,12 +44,6 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     '''The production configuration.'''
+    # in actual fact several options are overridden in this configuration,
+    # but they are done so via environment variables
     pass
-
-
-config = {
-    'testing': TestingConfig,
-    'development': DevelopmentConfig,
-    'production': ProductionConfig,
-    'default': DevelopmentConfig
-}
