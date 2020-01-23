@@ -1,4 +1,5 @@
 from flask import request, render_template, redirect, flash, current_app
+from markupsafe import Markup
 from app import core
 
 
@@ -12,11 +13,12 @@ def register(bp):
                 short_url = 'http://{}/{}'.format(
                     current_app.config['DOMAIN_NAME'],
                     short_key)
-                flash(short_url)
+                short_url_markup = Markup('<a href="{0}">{0}</a>'.format(short_url))
+                flash(short_url_markup, 'success')
             except core.InvalidURLError:
-                flash('Invalid URL. Please try again.')
+                flash('Invalid URL. Please try again.', 'error')
             except core.OutOfShortKeysError:
-                flash('Unable to shorten URL, sorry!')
+                flash('Unable to shorten URL, sorry!', 'error')
         return render_template('index.html')
 
 
