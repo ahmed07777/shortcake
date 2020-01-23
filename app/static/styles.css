@@ -1,4 +1,8 @@
 body {
-    background-color: "#676767";
+    background-image: url("images/cake-background.jpg");
     text-align: center;
+}
+
+.alert {
+    margin: 10px;
 }

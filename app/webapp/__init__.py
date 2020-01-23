@@ -8,5 +8,5 @@ from flask import Blueprint
 from . import routes
 
 
-bp = Blueprint('webapp', __name__)
+bp = Blueprint('webapp', __name__, template_folder='templates')
 routes.register(bp)
