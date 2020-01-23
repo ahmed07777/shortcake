@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% import 'bootstrap/utils.html' as utils %}
+
+{% block page_content %}
+<div class="row" >
+    <div class="col-md-8 col-md-offset-2" >
+        <h1>Not Found</h1>
+        <p>We don't know that URL, sorry!</p>
+        <p><a href="{{ url_for('index') }}">Return to main page</a></p>
+    </div>
+</div>
+{% endblock %}

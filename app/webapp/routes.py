@@ -27,8 +27,7 @@ def register(bp):
         try:
             expanded_url = core.lengthen_url(key)
             if not expanded_url:
-                return 'not found', 404
+                return render_template('404.html'), 404
             return redirect(expanded_url)
         except core.InvalidShortKeyError:
-            # TODO
-            return 'not found', 404
+            return render_template('404.html'), 404
