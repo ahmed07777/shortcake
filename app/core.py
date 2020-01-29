@@ -132,7 +132,7 @@ def _try_insert(key: str, url: str) -> bool:
         bool: Whether the (key,url) pair provided as arguments exists in
               the database
     '''
-    existing_entry = ShortURL.query.filter_by(key=key).first()
+    existing_entry = ShortURL.query.get(key)
     if existing_entry:
         return existing_entry.url == url
     db.session.add(ShortURL(key=key, url=url))

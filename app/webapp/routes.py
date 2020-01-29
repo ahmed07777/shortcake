@@ -26,6 +26,9 @@ def register(bp):
     def short_url_redirect(key):
         try:
             expanded_url = core.lengthen_url(key)
+            # TODO this is just a temporary hack for domain-only URLs
+            if not expanded_url.startswith('http'):
+                expanded_url = 'http://' + expanded_url
             if not expanded_url:
                 return render_template('404.html'), 404
             return redirect(expanded_url)
